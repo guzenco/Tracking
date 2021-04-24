@@ -12,6 +12,7 @@ line_th = 1
 max_x = 4.6
 max_y = 21
 filter_d = 10
+debug = False
 
 
 map_img = cv2.imread(map_bg)
@@ -42,7 +43,7 @@ def generate_track_map(track):
     map = map_img.copy()
     add_tracks(map, track)
     add_points(map, track)
-    show(map)
+    return map;
 
 def min_f(a, b):
     if a > b:
@@ -140,6 +141,22 @@ def timeFilter(track):
         track[i][2] = zone
     return track
 
+def removeRepeats(arr):
+    zone = arr[0][2]
+    base = arr[0][3]
+    buf = []
+    for i in range(len(arr)):
+        z = arr[i][2]
+        b = arr[i][3]
+        if (zone == z and base == b) or z == '':
+            buf.append(arr[i])
+        else:
+            zone = z
+            base = b
+    for e in buf:
+        arr.remove(e)
+    return track
+
 def getTrack(data):
     i = 0
     buf = []
@@ -172,7 +189,18 @@ with open(file_url, newline='') as File:
     track = getTrack(rows)
     track = timeFilter(track)
     if len(track) > 0:
-        print(track)
-        generate_track_map(track)
+        m = generate_track_map(track)
+        cv2.imwrite(file_url[:-3] + "jpg", m)
+        track = removeRepeats(track)
+
+        my_file = open(file_url[:-3] + "txt", "w")
+        for e in track:
+            my_file.write(e[2] + ' ' + e[3] + '\n')
+        my_file.close()
+        if debug:
+            print(track)
+            show(m)
+
+
 
 
