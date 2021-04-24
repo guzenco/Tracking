@@ -117,9 +117,10 @@ def cord(arr, i = 2):
     r = 0.
     for j in range(i):
         x1, y1 = map[int(arr[j][0]) - 1]
-        r += arr[j][1]
-        x += x1 * arr[j][1]
-        y += y1 * arr[j][1]
+        rl = db_to_n(arr[j][1])
+        r += rl
+        x += x1 * rl
+        y += y1 * rl
     return [x/r, y/r]
 
 
@@ -134,7 +135,7 @@ def filter(arr):
     return arr
 
 def db_to_n(x):
-    return math.pow(10, (-float(x))/10)
+    return math.pow(10, (float(x))/10)
 
 def timestamp_to_datetime(ts):
     return datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f")
