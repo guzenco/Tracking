@@ -6,7 +6,7 @@ import math
 #Кординати датчиків
 map = [[3.3, 0], [0.3, 0], [0.23, 21], [3.47, 20.8], [0.67, 7.8], [2.96, 12]]
 
-file_url = 'data/data-2-1.csv'
+file_url = 'data/data-1-1.csv'
 map_bg = 'res/map.png'
 line_th = 1
 max_x = 4.6
@@ -34,27 +34,29 @@ def add_tracks(map, track):
         x2, y2 = transform_cords(track[i], map)
         cv2.line(map, (x1, y1), (x2, y2), (0, 0, 255 - 150 * i / len(track)), line_th)
 
+def optimize_cords_for_text(img, x, y):
+    if x - 20 < 0:
+        x += 10
+    else:
+        if x + 40 > img.shape[1]:
+            x -= 50
+        else:
+            x -= 10
+    if y - 20 < 0:
+        y += 15
+    else:
+        if y + 20 > img.shape[0]:
+            y -= 15
+        else:
+            y -= 5
+    return x, y
+
 def add_points(map, track):
     for i in range(len(track)):
        x, y = transform_cords(track[i], map)
        cv2.circle(map, (x, y), line_th * 3, (0, 0, 255), -1)
-       if x - 20 < 0:
-           x += 10
-       else:
-            if x + 20 > map.shape[1]:
-                x -= 40
-            else:
-                x -= 10
-       if y - 20 < 0:
-           y += 15
-       else:
-            if y + 20 > map.shape[0]:
-               y -= 15
-            else:
-                y -= 5
-
+       x, y = optimize_cords_for_text(map,x, y)
        cv2.putText(map, str(i) + '. ' + track[i][2]+ ' ' + track[i][3], (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (200, 0, 200), 1, cv2.LINE_AA)
-
 
 def generate_track_map(track):
     map = map_img.copy()
@@ -181,7 +183,7 @@ def getTrack(data):
     for row in data:
         i += 1
         buf.append([int(row['eddystone_instance_id']), float(row['rssi'])])
-        if i == 6:
+        if i == 6 or (i > 3 and row == data[len(data) - 1]):
             i = 0
             buf = optimize(buf)
             if len(buf) < 3 or buf[0][1] - buf[len(buf) - 1][1] < 15:
@@ -191,7 +193,7 @@ def getTrack(data):
             buf = filter(buf)
             x, y = cord(buf, len(buf))
             base = ''
-            if len(buf) == 1 or buf[0][1] - buf[1][1] < 3:
+            if len(buf) == 1 or buf[0][1] - buf[1][1] > 3:
                 base = 'B' + str(buf[0][0])
             track.append([x, y, getZone(y), base, int(timestamp_to_datetime(row['timestamp']).strftime("%Y%m%d%H%M%S%f"))])
             buf = []
