@@ -3,10 +3,10 @@ import cv2
 import datetime
 import math
 
+#Кординати датчиків
 map = [[3.3, 0], [0.3, 0], [0.23, 21], [3.47, 20.8], [0.67, 7.8], [2.96, 12]]
 
-
-file_url = 'data/data-1-3.csv'
+file_url = 'data/data-2-1.csv'
 map_bg = 'res/map.png'
 line_th = 1
 max_x = 4.6
@@ -37,7 +37,24 @@ def add_tracks(map, track):
 def add_points(map, track):
     for i in range(len(track)):
        x, y = transform_cords(track[i], map)
-       cv2.circle(map, (x, y), line_th * 2, (0, 0, 255), -1)
+       cv2.circle(map, (x, y), line_th * 3, (0, 0, 255), -1)
+       if x - 20 < 0:
+           x += 10
+       else:
+            if x + 20 > map.shape[1]:
+                x -= 40
+            else:
+                x -= 10
+       if y - 20 < 0:
+           y += 15
+       else:
+            if y + 20 > map.shape[0]:
+               y -= 15
+            else:
+                y -= 5
+
+       cv2.putText(map, str(i) + '. ' + track[i][2]+ ' ' + track[i][3], (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (200, 0, 200), 1, cv2.LINE_AA)
+
 
 def generate_track_map(track):
     map = map_img.copy()
@@ -189,10 +206,9 @@ with open(file_url, newline='') as File:
     track = getTrack(rows)
     track = timeFilter(track)
     if len(track) > 0:
+        track = removeRepeats(track)
         m = generate_track_map(track)
         cv2.imwrite(file_url[:-3] + "jpg", m)
-        track = removeRepeats(track)
-
         my_file = open(file_url[:-3] + "txt", "w")
         for e in track:
             my_file.write(e[2] + ' ' + e[3] + '\n')
